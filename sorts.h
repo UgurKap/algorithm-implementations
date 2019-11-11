@@ -121,4 +121,30 @@ void mergeSort(T *arr, int start_point, int end_point){
     }
 }
 
+template <class T>
+int partition(T *arr, int start_point, int end_point){
+
+    T pivot_element = arr[end_point]; // x holds the value in the highest given index
+    int i = start_point - 1; // i is before the beginning of array
+    for(int j = start_point; j < end_point; j++){ // go through the array one by one
+        if (arr[j] <= pivot_element){ // if a value is less than or equal to to the pivot element
+            i += 1; // increase counter
+            std::swap(arr[j], arr[i]); // change the values of the last element and the current element
+        }
+    }
+    std::swap(arr[i + 1], arr[end_point]); // swap values of pivot_element and the last element
+    return i + 1; // return pivot_point
+}
+
+
+template <class T>
+void quickSort(T *arr, int start_point, int end_point){
+    if (start_point < end_point){
+        int pivot_point = partition(arr, start_point, end_point);
+        quickSort(arr, start_point, pivot_point - 1);
+        quickSort(arr, pivot_point + 1, end_point);
+    }
+    else return;
+}
+
 #endif //ALGOI_SORTS_H
