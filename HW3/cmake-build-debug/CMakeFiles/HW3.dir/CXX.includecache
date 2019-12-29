@@ -1,0 +1,18 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/ugur/Belgeler/ProgrammingProjects/AlgoI/HW3/hw3.h
+
+/home/ugur/Belgeler/ProgrammingProjects/AlgoI/HW3/main.cpp
+iostream
+-
+hw3.h
+/home/ugur/Belgeler/ProgrammingProjects/AlgoI/HW3/hw3.h
+cstdlib
+-
+
