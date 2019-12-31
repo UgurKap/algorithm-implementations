@@ -368,7 +368,7 @@ void RBTree::DeleteFix(Node *node, bool rep) {
         }
     }
 
-    node->isRed = false;
+    if (node) node->isRed = false;
 }
 
 void RBTree::InOrderWalk(Node *node) {
@@ -414,6 +414,10 @@ int main() {
     tree.Delete(arr[1]);
     tree.Delete(arr[11]);
     tree.InOrderWalk(tree.root);
+
+    for(int i = 0; i < 15; i++){
+        delete arr[i];
+    }
 
     return 0;
 }
