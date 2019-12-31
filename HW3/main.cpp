@@ -1,6 +1,5 @@
 #include <iostream>
 #include "hw3.h"
-#include <cstdlib>
 
 class Node{
 public:
@@ -23,13 +22,16 @@ Node::Node(int key) {
 class RBTree{
 public:
     Node *root;
+    // Necessary nodes for delete fix(So we have no memory leak)
+    Node *replacingNode;
+    Node *siblingNode;
     void RotateLeft(Node *node);
     void RotateRight(Node *node);
     void Insert(Node *node);
     void InsertFix(Node *node);
     void Transplant(Node *oldNode, Node *newNode);
     void Delete(Node *node);
-    void DeleteFix(Node *node);
+    void DeleteFix(Node *node, bool rep);
     void InOrderWalk(Node *node);
     Node* TreeMinimum(Node *begin);
     RBTree();
@@ -219,18 +221,41 @@ void RBTree::Delete(Node *node) {
     Node *temp = node;
     Node *replace = nullptr;
     bool originalIsRed = temp->isRed;
+    bool rep = false;
+
     if (node->left == nullptr){
         replace = node->right;
+
+        if (!replace){
+            rep = true;
+            // If there is no replacing node, we have to create an artificial one
+            replace = new Node(0);
+            this->replacingNode = replace;
+            replace->isRed = false;
+            replace->parent = node;
+            replace->parent->right = replace;
+        }
+
         Transplant(node, node->right);
+
     } else if (node->right == nullptr){
-        replace = node->left;
+        replace = node->left; // Since we check the left child first, there is no need to create an artificial node
         Transplant(node, node->left);
     } else {
         temp = TreeMinimum(node->right);
         originalIsRed = temp->isRed;
         replace = temp->right;
+        if (!replace){
+            rep = true;
+            // If there is no replacing node, we have to create an artificial one
+            replace = new Node(0);
+            this->replacingNode = replace;
+            replace->isRed = false;
+            replace->parent = temp;
+            replace->parent->right = replace;
+        }
         if (temp->parent == node){
-            if (replace) replace->parent = temp;
+            replace->parent = temp;
         } else {
             Transplant(temp, temp->right);
             temp->right = node->right;
@@ -243,21 +268,33 @@ void RBTree::Delete(Node *node) {
     }
 
     if(!(originalIsRed))
-        DeleteFix(replace);
+        DeleteFix(replace, rep);
 }
 
-void RBTree::DeleteFix(Node *node) {
-    Node *sibling;
-    while (node && (node != root && !node->isRed)){
-        if (node->parent && (node == node->parent->left)){
+void RBTree::DeleteFix(Node *node, bool rep) {
+
+    Node *sibling = nullptr;
+    bool siblingChange = false;
+    bool replaceChange = rep;
+
+    while (node != root && !node->isRed){
+        if (node == node->parent->left){
             sibling = node->parent->right;
-            if (sibling && sibling->isRed){
+            if (!sibling){
+                siblingChange = true;
+                sibling = new Node(0);
+                this->siblingNode = sibling;
+                sibling->parent = node->parent;
+                sibling->isRed = false;
+                node->parent->right = sibling;
+            }
+            if (sibling->isRed){
                 sibling->isRed = false;
                 node->parent->isRed = true;
                 RotateLeft(node->parent);
                 sibling = node->parent->right;
             }
-            if ((!sibling->left || !sibling->left->isRed) && (!sibling->right || !sibling->right)){
+            if ((!sibling->left || !sibling->left->isRed) && (!sibling->right || !sibling->right->isRed)){
                 sibling->isRed = true;
                 node = node->parent;
             } else {
@@ -275,41 +312,73 @@ void RBTree::DeleteFix(Node *node) {
             }
         } else {
             sibling = node->parent->left;
-            if (sibling && sibling->isRed){
+            if (!sibling){
+                siblingChange = true;
+                sibling = new Node(0);
+                this->siblingNode = sibling;
+                sibling->parent = node->parent;
+                sibling->isRed = false;
+                node->parent->left = sibling;
+            }
+
+            if (sibling->isRed){
                 sibling->isRed = false;
                 node->parent->isRed = true;
-                RotateLeft(node->parent);
+                RotateRight(node->parent);
                 sibling = node->parent->left;
             }
-            if ((sibling->right || !sibling->right->isRed) && (sibling->left || !sibling->left->isRed)){
+
+            if ((!sibling->right || !sibling->right->isRed) && (!sibling->left || !sibling->left->isRed)){
                 sibling->isRed = true;
                 node = node->parent;
             } else {
                 if (!sibling->left || !sibling->left->isRed) {
                     if (sibling->right) sibling->right->isRed = false;
                     sibling->isRed = true;
-                    RotateRight(sibling);
+                    RotateLeft(sibling);
                     sibling = node->parent->left;
                 }
                 sibling->isRed = node->parent->isRed;
                 node->parent->isRed = false;
                 sibling->left->isRed = false;
-                RotateLeft(node->parent);
+                RotateRight(node->parent);
                 node = root;
             }
         }
+
+        if (replaceChange){
+            replaceChange = false;
+            if (replacingNode->parent->left == replacingNode){
+                replacingNode->parent->left = nullptr;
+                delete replacingNode;
+            } else if (replacingNode->parent->right == replacingNode) {
+                replacingNode->parent->right = nullptr;
+                delete replacingNode;
+            }
+        }
+        if (siblingChange){
+            siblingChange = false;
+            if (siblingNode->parent->left == siblingNode){
+                siblingNode->parent->left = nullptr;
+                delete siblingNode;
+            } else if (siblingNode->parent->right == siblingNode){
+                siblingNode->parent->right = nullptr;
+                delete siblingNode;
+            }
+        }
     }
-    if (node) node->isRed = false;
+
+    node->isRed = false;
 }
 
 void RBTree::InOrderWalk(Node *node) {
-    //if (!node) std::cout << "nil" << std::endl;
+    if (!node) std::cout << "nil" << std::endl;
     if(node != nullptr) {
 
-        //std::cout << node->key << "'s left: ";
+        std::cout << node->key << "'s left: ";
         InOrderWalk(node->left);
         std::cout << node->key << "\t" << (node->isRed ? "Red" : "Black") << std::endl;
-        //std::cout << node->key << "'s right: ";
+        std::cout << node->key << "'s right: ";
         InOrderWalk(node->right);
     }
 }
@@ -330,40 +399,21 @@ RBTree::RBTree() {
 
 
 int main() {
-    /*RBTree tree;
+    RBTree tree;
     Node *arr[15] = {new Node(974), new Node(834), new Node(204), new Node(463), new Node(332),
                      new Node(293), new Node(706), new Node(126), new Node(980), new Node(630),
                      new Node(718), new Node(760), new Node(76), new Node(607), new Node(805)};
 
-    for (int i = 0; i < 15; i++){
-        arr[i] = new Node((rand() % 1000 + 1));
-    }
-
-    for (int i = 0; i < 15; i++){
+    for(int i = 0; i < 15; i++){
         tree.Insert(arr[i]);
     }
 
-    std::cout << "Array" << std::endl;
-    for (int i = 0; i < 15; i++){
-        std::cout << arr[i]->key << "\t";
-    }
-    std::cout << std::endl;
-
-    std::cout << "Tree" << std::endl;
-    tree.InOrderWalk(tree.root);
-
-    std::cout << "Deleting: " << arr[0]->key << " and " << arr[3]->key << std::endl;
-    tree.Delete(arr[0]);
+    std::cout << "Tree:\n";
 
     tree.Delete(arr[3]);
-    std::cout << "Tree After Delete 1:" << std::endl;
-    tree.InOrderWalk(tree.root);
     tree.Delete(arr[1]);
-    std::cout << "Tree After Delete 2:" << std::endl;
-    tree.InOrderWalk(tree.root);
     tree.Delete(arr[11]);
-    std::cout << "Tree After Delete 3:\n\n" << std::endl;
-    tree.InOrderWalk(tree.root);*/
+    tree.InOrderWalk(tree.root);
 
     return 0;
 }
