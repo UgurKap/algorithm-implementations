@@ -1,18 +1,22 @@
 #include <iostream>
+#include <vector>
 #include "hw3.h"
 
 class Node{
 public:
     bool isRed;
-    int key;
+    int key, size;
+    int ordinal;
     Node *parent;
     Node *left;
     Node *right;
-    Node(int key);
+    Node(int key=0, int ordinal=0);
 };
 
-Node::Node(int key) {
+Node::Node(int key, int ordinal) {
     this->key = key;
+    this->ordinal = ordinal;
+    this->size = 1;
     this->parent = nullptr;
     this->left = nullptr;
     this->right = nullptr;
@@ -33,6 +37,7 @@ public:
     void Delete(Node *node);
     void DeleteFix(Node *node, bool rep);
     void InOrderWalk(Node *node);
+    Node *Select(Node *begin, int i);
     Node* TreeMinimum(Node *begin);
     RBTree();
 };
@@ -63,6 +68,11 @@ void RBTree::RotateLeft(Node *node) {
 
         temp->left = node;
         node->parent = temp;
+        temp->size = node->size;
+        int s = 1;
+        if (node->left) s += node->left->size;
+        if (node->right) s += node->right->size;
+        node->size = s;
     } else {
         std::cerr << "You cannot left rotate if there is no right child!" << std::endl;
     }
@@ -94,6 +104,11 @@ void RBTree::RotateRight(Node *node) {
 
         temp->right = node;
         node->parent = temp;
+        temp->size = node->size;
+        int s = 1;
+        if (node->left) s += node->left->size;
+        if (node->right) s += node->right->size;
+        node->size = s;
     } else {
         std::cerr << "You cannot right rotate if there is no left child!" << std::endl;
     }
@@ -111,16 +126,31 @@ void RBTree::Insert(Node *node) {
     Node *temp = nullptr;
     Node *traverse = this->root;
     while (traverse){
+        traverse->size += 1;
         temp = traverse;
         if (node->key < traverse->key){
             traverse = traverse->left;
-        } else traverse = traverse->right;
+        } else if (node->key == traverse->key){
+            if (node->ordinal < traverse->ordinal){
+                traverse = traverse->left;
+            } else traverse = traverse->right;
+        } else {
+            traverse = traverse->right;
+        }
     }
+
     node->parent = temp;
+
     if (temp == nullptr){
         this->root = node;
     } else if (node->key < temp->key){
         temp->left = node;
+    } else if (node->key == temp->key){
+        if (node->ordinal < temp->ordinal){
+            temp->left = node;
+        } else {
+            temp->right = node;
+        }
     } else {
         temp->right = node;
     }
@@ -197,7 +227,9 @@ void RBTree::Transplant(Node *oldNode, Node *newNode) {
         oldNode->parent->right = newNode;
     }
 
-    if (newNode != nullptr) {
+
+    if (newNode) {
+        newNode->size = oldNode->size;
         newNode->parent = oldNode->parent;
     }
 }
@@ -225,11 +257,17 @@ void RBTree::Delete(Node *node) {
 
     if (node->left == nullptr){
         replace = node->right;
+        Node *traverse = temp;
+        while(traverse){
+            traverse->size -= 1;
+            traverse = traverse->parent;
+        }
 
         if (!replace){
             rep = true;
             // If there is no replacing node, we have to create an artificial one
-            replace = new Node(0);
+            replace = new Node(0, 0);
+            replace->size = 0;
             this->replacingNode = replace;
             replace->isRed = false;
             replace->parent = node;
@@ -239,16 +277,27 @@ void RBTree::Delete(Node *node) {
         Transplant(node, node->right);
 
     } else if (node->right == nullptr){
+        Node *traverse = temp;
+        while(traverse){
+            traverse->size -= 1;
+            traverse = traverse->parent;
+        }
         replace = node->left; // Since we check the left child first, there is no need to create an artificial node
         Transplant(node, node->left);
     } else {
         temp = TreeMinimum(node->right);
+        Node *traverse = temp;
+        while(traverse){
+            traverse->size -= 1;
+            traverse = traverse->parent;
+        }
         originalIsRed = temp->isRed;
         replace = temp->right;
         if (!replace){
             rep = true;
             // If there is no replacing node, we have to create an artificial one
-            replace = new Node(0);
+            replace = new Node(0, 0);
+            replace->size = 0;
             this->replacingNode = replace;
             replace->isRed = false;
             replace->parent = temp;
@@ -267,6 +316,8 @@ void RBTree::Delete(Node *node) {
         temp->isRed = node->isRed;
     }
 
+
+
     if(!(originalIsRed))
         DeleteFix(replace, rep);
 }
@@ -282,7 +333,8 @@ void RBTree::DeleteFix(Node *node, bool rep) {
             sibling = node->parent->right;
             if (!sibling){
                 siblingChange = true;
-                sibling = new Node(0);
+                sibling = new Node(0, 0);
+                sibling->size = 0;
                 this->siblingNode = sibling;
                 sibling->parent = node->parent;
                 sibling->isRed = false;
@@ -314,7 +366,8 @@ void RBTree::DeleteFix(Node *node, bool rep) {
             sibling = node->parent->left;
             if (!sibling){
                 siblingChange = true;
-                sibling = new Node(0);
+                sibling = new Node(0, 0);
+                sibling->size = 0;
                 this->siblingNode = sibling;
                 sibling->parent = node->parent;
                 sibling->isRed = false;
@@ -350,9 +403,11 @@ void RBTree::DeleteFix(Node *node, bool rep) {
             replaceChange = false;
             if (replacingNode->parent->left == replacingNode){
                 replacingNode->parent->left = nullptr;
+//                replacingNode->parent->size -= 1;
                 delete replacingNode;
             } else if (replacingNode->parent->right == replacingNode) {
                 replacingNode->parent->right = nullptr;
+//                replacingNode->parent->size -= 1;
                 delete replacingNode;
             }
         }
@@ -360,9 +415,11 @@ void RBTree::DeleteFix(Node *node, bool rep) {
             siblingChange = false;
             if (siblingNode->parent->left == siblingNode){
                 siblingNode->parent->left = nullptr;
+//                siblingNode->parent->size -= 1;
                 delete siblingNode;
             } else if (siblingNode->parent->right == siblingNode){
                 siblingNode->parent->right = nullptr;
+//                siblingNode->parent->size -= 1;
                 delete siblingNode;
             }
         }
@@ -375,10 +432,10 @@ void RBTree::InOrderWalk(Node *node) {
     if (!node) std::cout << "nil" << std::endl;
     if(node != nullptr) {
 
-        std::cout << node->key << "'s left: ";
+        std::cout << node->key <<", " << node->ordinal << ", " << node->size<< "'s left: ";
         InOrderWalk(node->left);
-        std::cout << node->key << "\t" << (node->isRed ? "Red" : "Black") << std::endl;
-        std::cout << node->key << "'s right: ";
+        std::cout << "(" <<node->key << ", "<< node->ordinal << ", " << node->size << ")\t" << (node->isRed ? "Red" : "Black") << std::endl;
+        std::cout << node->key  <<", " << node->ordinal << ", " << node->size<< "'s right: ";
         InOrderWalk(node->right);
     }
 }
@@ -394,30 +451,36 @@ Node *RBTree::TreeMinimum(Node *begin) {
 }
 
 RBTree::RBTree() {
-    root = nullptr;
+    root = replacingNode = siblingNode = nullptr;
 }
 
+Node *RBTree::Select(Node *begin, int i) {
+    int s = 1;
+    if (begin->left) s += begin->left->size;
+    int rank = s;
+    if (i == rank){
+        return begin;
+    } else if (i < rank){
+        return Select(begin->left, i);
+    } else {
+        return Select(begin->right, i - rank);
+    }
+}
 
 int main() {
     RBTree tree;
     Node *arr[15] = {new Node(974), new Node(834), new Node(204), new Node(463), new Node(332),
                      new Node(293), new Node(706), new Node(126), new Node(980), new Node(630),
                      new Node(718), new Node(760), new Node(76), new Node(607), new Node(805)};
-
     for(int i = 0; i < 15; i++){
         tree.Insert(arr[i]);
     }
 
-    std::cout << "Tree:\n";
-
+    // std::cout << tree.Select(tree.root, 5)->key;
     tree.Delete(arr[3]);
     tree.Delete(arr[1]);
     tree.Delete(arr[11]);
     tree.InOrderWalk(tree.root);
-
-    for(int i = 0; i < 15; i++){
-        delete arr[i];
-    }
 
     return 0;
 }
