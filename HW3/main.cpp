@@ -25,6 +25,9 @@ Node::Node(int key, int ordinal) {
 
 class RBTree{
 public:
+    int elementCount;
+    int redElements;
+    int blackElements;
     Node *root;
     // Necessary nodes for delete fix(So we have no memory leak)
     Node *replacingNode;
@@ -39,6 +42,7 @@ public:
     void InOrderWalk(Node *node);
     Node *Select(Node *begin, int i);
     Node* TreeMinimum(Node *begin);
+    void CountElements(Node *begin);
     RBTree();
 };
 
@@ -122,7 +126,7 @@ void RBTree::Insert(Node *node) {
      * we call another function called InsertFix that fixes any coloring
      * issues.
      */
-
+    elementCount += 1;
     Node *temp = nullptr;
     Node *traverse = this->root;
     while (traverse){
@@ -250,6 +254,7 @@ void RBTree::Delete(Node *node) {
      * paths that lead to leaves which would violate the red-black tree
      * properties.
      */
+    elementCount -= 1;
     Node *temp = node;
     Node *replace = nullptr;
     bool originalIsRed = temp->isRed;
@@ -257,7 +262,7 @@ void RBTree::Delete(Node *node) {
 
     if (node->left == nullptr){
         replace = node->right;
-        Node *traverse = temp;
+        Node *traverse = temp->parent;
         while(traverse){
             traverse->size -= 1;
             traverse = traverse->parent;
@@ -277,7 +282,7 @@ void RBTree::Delete(Node *node) {
         Transplant(node, node->right);
 
     } else if (node->right == nullptr){
-        Node *traverse = temp;
+        Node *traverse = temp->parent;
         while(traverse){
             traverse->size -= 1;
             traverse = traverse->parent;
@@ -286,7 +291,7 @@ void RBTree::Delete(Node *node) {
         Transplant(node, node->left);
     } else {
         temp = TreeMinimum(node->right);
-        Node *traverse = temp;
+        Node *traverse = temp->parent;
         while(traverse){
             traverse->size -= 1;
             traverse = traverse->parent;
@@ -320,6 +325,19 @@ void RBTree::Delete(Node *node) {
 
     if(!(originalIsRed))
         DeleteFix(replace, rep);
+
+    if (rep){
+        rep = false;
+        if(!replacingNode->parent){
+            delete replacingNode;
+        } else if (replacingNode->parent->left == replacingNode){
+            replacingNode->parent->left = nullptr;
+            delete replacingNode;
+        } else if (replacingNode->parent->right == replacingNode) {
+            replacingNode->parent->right = nullptr;
+            delete replacingNode;
+        }
+    }
 }
 
 void RBTree::DeleteFix(Node *node, bool rep) {
@@ -401,25 +419,25 @@ void RBTree::DeleteFix(Node *node, bool rep) {
 
         if (replaceChange){
             replaceChange = false;
-            if (replacingNode->parent->left == replacingNode){
+            if(!replacingNode->parent){
+                delete replacingNode;
+            } else if (replacingNode->parent->left == replacingNode){
                 replacingNode->parent->left = nullptr;
-//                replacingNode->parent->size -= 1;
                 delete replacingNode;
             } else if (replacingNode->parent->right == replacingNode) {
                 replacingNode->parent->right = nullptr;
-//                replacingNode->parent->size -= 1;
                 delete replacingNode;
             }
         }
         if (siblingChange){
             siblingChange = false;
-            if (siblingNode->parent->left == siblingNode){
+            if(!siblingNode->parent){
+                delete siblingNode;
+            } else if (siblingNode->parent->left == siblingNode){
                 siblingNode->parent->left = nullptr;
-//                siblingNode->parent->size -= 1;
                 delete siblingNode;
             } else if (siblingNode->parent->right == siblingNode){
                 siblingNode->parent->right = nullptr;
-//                siblingNode->parent->size -= 1;
                 delete siblingNode;
             }
         }
@@ -429,13 +447,13 @@ void RBTree::DeleteFix(Node *node, bool rep) {
 }
 
 void RBTree::InOrderWalk(Node *node) {
-    if (!node) std::cout << "nil" << std::endl;
+    //if (!node) std::cout << "nil" << std::endl;
     if(node != nullptr) {
 
-        std::cout << node->key <<", " << node->ordinal << ", " << node->size<< "'s left: ";
+        //std::cout << node->key <<", " << node->ordinal << ", " << node->size<< "'s left: ";
         InOrderWalk(node->left);
         std::cout << "(" <<node->key << ", "<< node->ordinal << ", " << node->size << ")\t" << (node->isRed ? "Red" : "Black") << std::endl;
-        std::cout << node->key  <<", " << node->ordinal << ", " << node->size<< "'s right: ";
+        //std::cout << node->key  <<", " << node->ordinal << ", " << node->size<< "'s right: ";
         InOrderWalk(node->right);
     }
 }
@@ -452,10 +470,13 @@ Node *RBTree::TreeMinimum(Node *begin) {
 
 RBTree::RBTree() {
     root = replacingNode = siblingNode = nullptr;
+    elementCount = blackElements = redElements = 0;
+
 }
 
 Node *RBTree::Select(Node *begin, int i) {
     int s = 1;
+    if(!begin) return nullptr;
     if (begin->left) s += begin->left->size;
     int rank = s;
     if (i == rank){
@@ -467,20 +488,149 @@ Node *RBTree::Select(Node *begin, int i) {
     }
 }
 
-int main() {
-    RBTree tree;
-    Node *arr[15] = {new Node(974), new Node(834), new Node(204), new Node(463), new Node(332),
-                     new Node(293), new Node(706), new Node(126), new Node(980), new Node(630),
-                     new Node(718), new Node(760), new Node(76), new Node(607), new Node(805)};
-    for(int i = 0; i < 15; i++){
-        tree.Insert(arr[i]);
+void RBTree::CountElements(Node *begin) {
+    if(begin != nullptr) {
+        CountElements(begin->left);
+        if (begin->isRed) redElements += 1;
+        else blackElements += 1;
+        CountElements(begin->right);
+    }
+}
+
+class Warehouse{
+public:
+    RBTree storage;
+    Node *arr;
+    int minOrdinal;
+    bool accept;
+    std::vector<Node*> cargo;
+    Warehouse(int *sizes, int *ordinals, int count);
+    void sendPackages(int i, bool start=false);
+    void receivePackages(std::vector<Node*> packages);
+    void findMinimum();
+};
+
+Warehouse::Warehouse(int *sizes, int *ordinals, int count) {
+    this->arr = new Node[count];
+    accept = true;
+
+    for (int i = 0; i < count; i++){
+        arr[i].key = sizes[i];
+        arr[i].ordinal = ordinals[i];
+        storage.Insert(&arr[i]);
+    }
+}
+
+void Warehouse::findMinimum() {
+    int minSize = storage.TreeMinimum(storage.root)->key;
+    while (minSize == storage.TreeMinimum(storage.root)->key){
+        cargo.push_back(storage.TreeMinimum(storage.root));
+        storage.Delete(storage.TreeMinimum(storage.root));
+    }
+}
+
+void Warehouse::sendPackages(int i, bool start) {
+
+    if (!(storage.Select(storage.root, i))){
+        findMinimum();
+        if (!start) accept = false;
+    } else {
+        cargo.push_back(storage.Select(storage.root, i));
+
+        //storage.InOrderWalk(storage.root);
+        Node * temp = storage.Select(storage.root, i);
+        storage.Delete(temp);
+        //storage.InOrderWalk(storage.root);
+    }
+}
+
+void Warehouse::receivePackages(std::vector<Node*> packages) {
+    minOrdinal = packages[0]->ordinal;
+
+    for(auto it = packages.begin(); it != packages.end(); ++it){
+        if ((*it)->ordinal < minOrdinal) minOrdinal = (*it)->ordinal;
     }
 
-    // std::cout << tree.Select(tree.root, 5)->key;
-    tree.Delete(arr[3]);
-    tree.Delete(arr[1]);
-    tree.Delete(arr[11]);
-    tree.InOrderWalk(tree.root);
+    cargo.clear();
+    sendPackages(minOrdinal);
+
+    if (accept){
+        for(auto it = packages.begin(); it != packages.end(); ++it){
+            storage.Insert(*it);
+        }
+    }
+
+    accept = true;
+}
+
+HW3_Result hw3(  int eastWarehousePackageCount,
+                 int eastWarehousePackageSizes [],
+                 int eastWarehousePackageOrdinals [],
+                 int westWarehousePackageCount,
+                 int westWarehousePackageSizes [],
+                 int westWarehousePackageOrdinals [] ){
+
+    Warehouse East(eastWarehousePackageSizes, eastWarehousePackageOrdinals, eastWarehousePackageCount);
+    Warehouse West(westWarehousePackageSizes, westWarehousePackageOrdinals, westWarehousePackageCount);
+
+    East.sendPackages(0, true);
+    std::vector<Node*> cargo = East.cargo;
+
+    int packageCount = 0;
+    int redNodeCount = 0;
+    int blackNodeCount = 0;
+
+    while(true){
+        West.receivePackages(cargo);
+        cargo = West.cargo;
+        if(West.storage.elementCount == 0) {
+            for(auto it = cargo.begin(); it != cargo.end(); ++it){
+                East.storage.Insert(*it);
+            }
+            packageCount = East.storage.elementCount;
+            East.storage.CountElements(East.storage.root);
+            redNodeCount = East.storage.redElements;
+            blackNodeCount =  East.storage.blackElements;
+            break;
+        }
+
+        East.receivePackages(cargo);
+        cargo = East.cargo;
+        if(East.storage.elementCount == 0) {
+            for(auto it = cargo.begin(); it != cargo.end(); ++it){
+                West.storage.Insert(*it);
+            }
+            packageCount = West.storage.elementCount;
+            West.storage.CountElements(West.storage.root);
+            redNodeCount = West.storage.redElements;
+            blackNodeCount =  West.storage.blackElements;
+            break;
+        }
+    }
+
+    HW3_Result result;
+    result.blackNodeCount = blackNodeCount;
+    result.redNodeCount = redNodeCount;
+    result.packageCount = packageCount;
+    return result;
+}
+
+int main() {
+    int eastWarehousePackageCount = 10;
+    int eastWarehousePackageSizes[10] = {1, 5, 34, 6, 7, 23, 5, 6, 34, 5};
+    int eastWarehousePackageOrdinals[10] = {7, 43, 59, 80, 925, 89, 27, 45, 89, 72};
+
+    int westWarehousePackageCount = 10;
+    int westWarehousePackageSizes[10] = {10, 38, 51, 7, 38, 47, 8, 53, 2, 94};
+    int westWarehousePackageOrdinals[10] = {5, 62, 86, 73, 74, 83, 68, 35, 7, 95};
+
+    HW3_Result result = hw3(eastWarehousePackageCount, eastWarehousePackageSizes, eastWarehousePackageOrdinals,
+            westWarehousePackageCount, westWarehousePackageSizes, westWarehousePackageOrdinals);
+
+
+    std::cout << "Package Count: " << result.packageCount << std::endl;
+    std::cout << "Red Node Count: " << result.redNodeCount << std::endl;
+    std::cout << "Black Node Count: " << result.blackNodeCount << std::endl;
 
     return 0;
 }
