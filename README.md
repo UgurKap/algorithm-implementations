@@ -19,3 +19,6 @@ These algorithm implementations can be found on sorts.h file.
     Red Black Trees are special kind of binary search trees where tree is guaranteed to be in balance. Tree size is lgn at most.
 2. [Order Statistic Tree](https://github.com/UgurKap/algorithm-implementations/blob/master/Order%20Statistic%20Tree/OrderStatisticTree.cpp)  
     In this repo, you can find an order statistic tree based on red black trees. Order statistic tree is an efficient tree structure to get the ith smallest item where i is an index of your choice.
+
+3. [Minimum Heap](https://github.com/UgurKap/algorithm-implementations/blob/master/HW2/main.cpp)  
+    Priority queue implementation using minimum heaps.
