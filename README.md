@@ -12,3 +12,10 @@ These algorithm implementations can be found on sorts.h file.
     An algorithm that uses divide and conquer. Its running time is <img src="https://tex.s2cms.ru/svg/%5CTheta(nlgn)" />
 3. Quick Sort  
     Another sorting algorithm that uses divide and conquer method. Worst case running time <img src="https://tex.s2cms.ru/svg/O(n%5E2)" /> but expected running time is <img src="https://tex.s2cms.ru/svg/O(nlgn)"/>.
+
+## Data Structures
+
+1. [Red Black Tree](https://github.com/UgurKap/algorithm-implementations/blob/master/Red%20Black%20Tree/RedBlackTree.cpp)  
+    Red Black Trees are a special kind of binary search trees where tree is guaranteed to be in balance. Tree size is lgn at most.
+2. [Order Statistic Tree](https://github.com/UgurKap/algorithm-implementations/blob/master/Order%20Statistic%20Tree/OrderStatisticTree.cpp)  
+    In this repo, you can find an order statistic tree based on red black trees. Order statistic tree is an efficient tree structure to get the ith smallest item where i is an index of your choice.
