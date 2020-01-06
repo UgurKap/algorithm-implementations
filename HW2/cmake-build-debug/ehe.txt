@@ -1,0 +1,3 @@
+KAPLAN 6 9
+UGUR 1 5
+ALI 4 9

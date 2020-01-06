@@ -1,0 +1,20 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/ugur/Belgeler/ProgrammingProjects/AlgoI/HW2/main.cpp
+iostream
+-
+cmath
+-
+fstream
+-
+cstdlib
+-
+vector
+-
+
