@@ -35,10 +35,22 @@ public:
     void Delete(Node *node);
     void DeleteFix(Node *node, bool rep);
     void InOrderWalk(Node *node);
+    void UpdateSize(Node *node, int by);
     Node *Select(Node *begin, int i);
     Node* TreeMinimum(Node *begin);
     RBTree();
 };
+
+/*
+    This function increments or decrements the sizes of the 
+    nodes that lay on the branch as same as node's branch and
+    has a lower value of height.
+    Used when deleting and inserting.
+*/
+void RBTree::UpdateSize(Node *node, int by){
+    node->size += by;
+    if(node->parent) UpdateSize(node->parent, by);
+}
 
 void RBTree::RotateLeft(Node *node) {
     /*
@@ -157,6 +169,7 @@ void RBTree::Insert(Node *node) {
     node->right = nullptr;
     node->isRed = true;
     InsertFix(node);
+    UpdateSize(node, 1);
 }
 
 void RBTree::InsertFix(Node *node) {
@@ -314,7 +327,7 @@ void RBTree::Delete(Node *node) {
         temp->isRed = node->isRed;
     }
 
-
+    UpdateSize(node, -1);
 
     if(!(originalIsRed))
         DeleteFix(replace, rep);
@@ -493,6 +506,9 @@ int main() {
     tree.Delete(arr[1]);
     tree.Delete(arr[11]);
     tree.InOrderWalk(tree.root);
+    std::cout << "Program ended" << std::endl;  
+
+
 
     return 0;
 }
