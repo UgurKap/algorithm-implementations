@@ -13,6 +13,11 @@ These algorithm implementations can be found on sorts.h file.
 3. Quick Sort  
     Another sorting algorithm that uses divide and conquer method. Worst case running time <img src="https://tex.s2cms.ru/svg/O(n%5E2)" /> but expected running time is <img src="https://tex.s2cms.ru/svg/O(nlgn)"/>.
 
+## Graph Traversal Algorithms
+
+1. [Breadth First Search]((https://github.com/UgurKap/algorithm-implementations/blob/master/Algo%20II/HW1/main.cpp))
+2. [Depth First Search]((https://github.com/UgurKap/algorithm-implementations/blob/master/Algo%20II/HW1/main.cpp))
+
 ## Data Structures
 
 1. [Red Black Tree](https://github.com/UgurKap/algorithm-implementations/blob/master/Red%20Black%20Tree/RedBlackTree.cpp)  
@@ -22,3 +27,8 @@ These algorithm implementations can be found on sorts.h file.
 
 3. [Minimum Heap](https://github.com/UgurKap/algorithm-implementations/blob/master/HW2/main.cpp)  
     Priority queue implementation using minimum heaps.
+
+4. [Graph](https://github.com/UgurKap/algorithm-implementations/blob/master/Algo%20II/HW1/main.cpp)  
+    Graph implementation using adjacency list. Same file also has breadth first and depth first search algorithms inside it.
+
+
