@@ -15,8 +15,8 @@ These algorithm implementations can be found on sorts.h file.
 
 ## Graph Traversal Algorithms
 
-1. [Breadth First Search]((https://github.com/UgurKap/algorithm-implementations/blob/master/Algo%20II/HW1/main.cpp))
-2. [Depth First Search]((https://github.com/UgurKap/algorithm-implementations/blob/master/Algo%20II/HW1/main.cpp))
+1. [Breadth First Search](https://github.com/UgurKap/algorithm-implementations/blob/master/AlgoII/HW1/main.cpp)
+2. [Depth First Search](https://github.com/UgurKap/algorithm-implementations/blob/master/AlgoII/HW1/main.cpp)
 
 ## Data Structures
 
@@ -28,7 +28,7 @@ These algorithm implementations can be found on sorts.h file.
 3. [Minimum Heap](https://github.com/UgurKap/algorithm-implementations/blob/master/HW2/main.cpp)  
     Priority queue implementation using minimum heaps.
 
-4. [Graph](https://github.com/UgurKap/algorithm-implementations/blob/master/Algo%20II/HW1/main.cpp)  
+4. [Graph](https://github.com/UgurKap/algorithm-implementations/blob/master/AlgoII/HW1/main.cpp)  
     Graph implementation using adjacency list. Same file also has breadth first and depth first search algorithms inside it.
 
 
