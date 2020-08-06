@@ -443,10 +443,10 @@ void RBTree::InOrderWalk(Node *node) {
     if (!node) std::cout << "nil" << std::endl;
     if(node != nullptr) {
 
-        std::cout << node->key <<", " << node->ordinal << ", " << node->size<< "'s left: ";
+        //std::cout << node->key <<", " << node->ordinal << ", " << node->size<< "'s left: ";
         InOrderWalk(node->left);
         std::cout << "(" <<node->key << ", "<< node->ordinal << ", " << node->size << ")\t" << (node->isRed ? "Red" : "Black") << std::endl;
-        std::cout << node->key  <<", " << node->ordinal << ", " << node->size<< "'s right: ";
+        //std::cout << node->key  <<", " << node->ordinal << ", " << node->size<< "'s right: ";
         InOrderWalk(node->right);
     }
 }
