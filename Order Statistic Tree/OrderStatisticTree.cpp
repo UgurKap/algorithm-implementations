@@ -255,7 +255,7 @@ void RBTree::Delete(Node *node) {
 
     if (node->left == nullptr){
         replace = node->right;
-        Node *traverse = temp->parent;
+        Node *traverse = temp;
         while(traverse){
             traverse->size -= 1;
             traverse = traverse->parent;
@@ -443,10 +443,10 @@ void RBTree::InOrderWalk(Node *node) {
     if (!node) std::cout << "nil" << std::endl;
     if(node != nullptr) {
 
-        //std::cout << node->key <<", " << node->ordinal << ", " << node->size<< "'s left: ";
+        std::cout << node->key <<", " << node->ordinal << ", " << node->size<< "'s left: ";
         InOrderWalk(node->left);
         std::cout << "(" <<node->key << ", "<< node->ordinal << ", " << node->size << ")\t" << (node->isRed ? "Red" : "Black") << std::endl;
-        //std::cout << node->key  <<", " << node->ordinal << ", " << node->size<< "'s right: ";
+        std::cout << node->key  <<", " << node->ordinal << ", " << node->size<< "'s right: ";
         InOrderWalk(node->right);
     }
 }
