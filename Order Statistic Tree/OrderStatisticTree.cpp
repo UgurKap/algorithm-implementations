@@ -262,6 +262,10 @@ void RBTree::Delete(Node *node) {
         }
 
         if (!replace){
+            if (node == root) {
+                root = nullptr;
+                return;
+            }
             rep = true;
             // If there is no replacing node, we have to create an artificial one
             replace = new Node(0, 0);
