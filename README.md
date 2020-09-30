@@ -1,6 +1,6 @@
 # Algorithm Implementations
 
-This is a repo where I upload my implementations of various algorithms we examine on our school. I also add homework files when it is applicable(i.e. if homework requires programming, I upload its programming part.). So far, I have implemented these:
+This is a repository where I upload my implementations of various algorithms we examine on our school. I also add homework files when it is applicable(i.e. if homework requires programming, I upload its programming part). So far, I have implemented the ones below:
 
 ## Sorting Algorithms  
 
